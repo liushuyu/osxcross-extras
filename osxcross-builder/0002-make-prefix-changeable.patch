@@ -1,0 +1,48 @@
+diff --git a/tools/tools.sh b/tools/tools.sh
+index 3c64477..d24bdb5 100644
+--- a/tools/tools.sh
++++ b/tools/tools.sh
+@@ -6,7 +6,11 @@ BASE_DIR=$PWD
+ 
+ TARBALL_DIR=$BASE_DIR/tarballs
+ BUILD_DIR=$BASE_DIR/build
+-TARGET_DIR=$BASE_DIR/target
++if [ "x${OC_SYSROOT}" != 'x' ]; then
++    TARGET_DIR="${OC_SYSROOT}"
++else
++    TARGET_DIR=$BASE_DIR/target
++fi
+ PATCH_DIR=$BASE_DIR/patches
+ SDK_DIR=$TARGET_DIR/SDK
+ 
+diff --git a/wrapper/build.sh b/wrapper/build.sh
+index d4d5c92..cbbae1a 100755
+--- a/wrapper/build.sh
++++ b/wrapper/build.sh
+@@ -125,7 +125,7 @@ fi
+ 
+ verbose_cmd mv wrapper "${TARGET_DIR}/bin/${TARGETTRIPLE}-wrapper${EXESUFFIX}"
+ 
+-pushd "../target/bin" &>/dev/null
++pushd "${TARGET_DIR}/bin" &>/dev/null
+ 
+ if [ $TARGETCOMPILER = "clang" ]; then
+   create_wrapper_link clang 2
+diff --git a/tools/osxcross_conf.sh b/tools/osxcross_conf.sh
+index a0c9571..6cfa79f 100755
+--- a/tools/osxcross_conf.sh
++++ b/tools/osxcross_conf.sh
+@@ -2,7 +2,12 @@
+ 
+ pushd "${0%/*}" &>/dev/null
+ 
+-OSXCROSS_CONF="../target/bin/osxcross-conf"
++if [ -z "${OC_SYSROOT}" ]; then
++  OSXCROSS_CONF="../target/bin/osxcross-conf"
++else
++  OSXCROSS_CONF="${OC_SYSROOT}/bin/osxcross-conf"
++fi
++
+ [ -f $OSXCROSS_CONF ] || { OSXCROSS_CONF=$(which osxcross-conf 2>/dev/null) || exit 1; }
+ 
+ $OSXCROSS_CONF || exit 1

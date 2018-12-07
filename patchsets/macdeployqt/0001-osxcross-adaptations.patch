@@ -1,0 +1,168 @@
+From 574abad02646ca4827d3c2b9c0ff7715d5469cfc Mon Sep 17 00:00:00 2001
+From: liushuyu <liushuyu011@gmail.com>
+Date: Mon, 3 Dec 2018 21:26:11 -0700
+Subject: [PATCH] osxcross adaptations
+
+---
+ src/macdeployqt/CMakeLists.txt    | 52 +++++++++++++++++++++++++++++++
+ src/macdeployqt/shared/shared.cpp | 35 ++++++++++++++++++---
+ 2 files changed, 83 insertions(+), 4 deletions(-)
+ create mode 100644 src/macdeployqt/CMakeLists.txt
+
+diff --git a/src/macdeployqt/CMakeLists.txt b/src/macdeployqt/CMakeLists.txt
+new file mode 100644
+index 00000000..8d10f64c
+--- /dev/null
++++ b/src/macdeployqt/CMakeLists.txt
+@@ -0,0 +1,52 @@
++cmake_minimum_required(VERSION 3.2)
++project(macdeployqt)
++set (QT_MIN_VERSION "5.5.0")
++
++find_package(Qt5 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core)
++
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
++include_directories(${Qt5Core_INCLUDE_DIRS})
++
++# taken from osxcross toolchain file
++macro(osxcross_getconf VAR)
++  if(NOT ${VAR})
++    set(${VAR} "$ENV{${VAR}}")
++    if(${VAR})
++      set(${VAR} "${${VAR}}" CACHE STRING "${VAR}")
++      message(STATUS "Found ${VAR}: ${${VAR}}")
++    else()
++      message(WARNING "Cannot determine \"${VAR}\"")
++    endif()
++  endif()
++endmacro()
++
++osxcross_getconf(OSXCROSS_HOST)
++osxcross_getconf(OSXCROSS_TARGET_DIR)
++
++SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
++SET(AUTOUIC_SEARCH_PATHS "${AUTOUIC_SEARCH_PATHS} ${CMAKE_CURRENT_SOURCE_DIR}")
++
++if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
++  if(OSXCROSS_HOST)
++    add_definitions(-DOSXCROSS_HOST="${OSXCROSS_HOST}")
++    add_definitions(-DOSXCROSS_TARGET_DIR="${OSXCROSS_TARGET_DIR}")
++  else()
++    message(FATAL_ERROR "This is intended to use with osxcross. If you have osxcross prepared, run eval `osxcross-conf`")
++  endif(OSXCROSS_HOST)
++endif()
++
++add_library(shared OBJECT shared/shared.cpp)
++
++add_executable(macdeployqt
++  $<TARGET_OBJECTS:shared>
++  macdeployqt/main.cpp
++)
++
++target_link_libraries(macdeployqt Qt5::Core)
++
++add_executable(macchangeqt
++  $<TARGET_OBJECTS:shared>
++  macdeployqt/main.cpp
++)
++
++target_link_libraries(macchangeqt Qt5::Core)
+diff --git a/src/macdeployqt/shared/shared.cpp b/src/macdeployqt/shared/shared.cpp
+index bba71d9d..61d541ec 100644
+--- a/src/macdeployqt/shared/shared.cpp
++++ b/src/macdeployqt/shared/shared.cpp
+@@ -48,6 +48,16 @@
+ #include <CoreFoundation/CoreFoundation.h>
+ #endif
+ 
++#ifdef OSXCROSS_HOST
++#define OTOOL OSXCROSS_HOST "-otool"
++#define STRIPTOOL OSXCROSS_HOST "-strip"
++#define INSTALL_NAME_TOOL OSXCROSS_HOST "-install_name_tool"
++#else
++#define OTOOL "otool"
++#define STRIPTOOL "strip"
++#define INSTALL_NAME_TOOL "install_name_tool"
++#endif
++
+ bool runStripEnabled = true;
+ bool alwaysOwerwriteEnabled = false;
+ bool runCodesign = false;
+@@ -170,7 +180,7 @@ OtoolInfo findDependencyInfo(const QString &binaryPath)
+     LogDebug() << "Using otool:";
+     LogDebug() << " inspecting" << binaryPath;
+     QProcess otool;
+-    otool.start("otool", QStringList() << "-L" << binaryPath);
++    otool.start(OTOOL, QStringList() << "-L" << binaryPath);
+     otool.waitForFinished();
+ 
+     if (otool.exitStatus() != QProcess::NormalExit || otool.exitCode() != 0) {
+@@ -403,6 +413,16 @@ QString findAppBinary(const QString &appBundlePath)
+         CFRelease(bundle);
+     }
+     CFRelease(bundleURL);
++#else
++  QDir path(appBundlePath);
++	QString bn = path.dirName();
++	if (!bn.isNull()) {
++		int suffix = bn.lastIndexOf(".app");
++		if (suffix != -1) {
++			QString binPath = bn.mid(0, suffix);
++			binaryPath = (path.absolutePath() + "/Contents/MacOS/" + binPath);
++		}
++	}
+ #endif
+ 
+     if (QFile::exists(binaryPath))
+@@ -516,7 +536,7 @@ QSet<QString> getBinaryRPaths(const QString &path, bool resolve = true, QString
+     QSet<QString> rpaths;
+ 
+     QProcess otool;
+-    otool.start("otool", QStringList() << "-l" << path);
++    otool.start(OTOOL, QStringList() << "-l" << path);
+     otool.waitForFinished();
+ 
+     if (otool.exitCode() != 0) {
+@@ -797,7 +817,7 @@ QString copyFramework(const FrameworkInfo &framework, const QString path)
+ void runInstallNameTool(QStringList options)
+ {
+     QProcess installNametool;
+-    installNametool.start("install_name_tool", options);
++    installNametool.start(INSTALL_NAME_TOOL, options);
+     installNametool.waitForFinished();
+     if (installNametool.exitCode() != 0) {
+         LogError() << installNametool.readAllStandardError();
+@@ -897,7 +917,7 @@ void runStrip(const QString &binaryPath)
+     LogDebug() << "Using strip:";
+     LogDebug() << " stripped" << binaryPath;
+     QProcess strip;
+-    strip.start("strip", QStringList() << "-x" << binaryPath);
++    strip.start(STRIPTOOL, QStringList() << "-x" << binaryPath);
+     strip.waitForFinished();
+     if (strip.exitCode() != 0) {
+         LogError() << strip.readAllStandardError();
+@@ -954,7 +974,11 @@ DeploymentInfo deployQtFrameworks(QList<FrameworkInfo> frameworks,
+             deploymentInfo.isDebug = true;
+ 
+         if (deploymentInfo.qtPath.isNull())
++        #ifdef OSXCROSS_TARGET_DIR
++            deploymentInfo.qtPath = OSXCROSS_TARGET_DIR "/macports/pkgs/opt/local/";
++        #else
+             deploymentInfo.qtPath = QLibraryInfo::location(QLibraryInfo::PrefixPath);
++        #endif
+ 
+         if (framework.frameworkDirectory.startsWith(bundlePath)) {
+             LogError()  << framework.frameworkName << "already deployed, skipping.";
+@@ -1013,6 +1037,9 @@ DeploymentInfo deployQtFrameworks(const QString &appBundlePath, const QStringLis
+    QStringList allBinaryPaths = QStringList() << applicationBundle.binaryPath << applicationBundle.libraryPaths
+                                                  << additionalExecutables;
+    QSet<QString> allLibraryPaths = getBinaryRPaths(applicationBundle.binaryPath, true);
++#ifdef OSXCROSS_TARGET_DIR
++   allLibraryPaths.insert(OSXCROSS_TARGET_DIR "/macports/pkgs/opt/local/lib/");
++#endif
+    allLibraryPaths.insert(QLibraryInfo::location(QLibraryInfo::LibrariesPath));
+    QList<FrameworkInfo> frameworks = getQtFrameworksForPaths(allBinaryPaths, appBundlePath, allLibraryPaths, useDebugLibs);
+    if (frameworks.isEmpty() && !alwaysOwerwriteEnabled) {
+-- 
+2.19.2
+

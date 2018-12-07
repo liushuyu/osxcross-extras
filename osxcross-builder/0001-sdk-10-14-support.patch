@@ -1,0 +1,32 @@
+diff --git a/wrapper/target.cpp b/wrapper/target.cpp
+index a4f18b5..554479d 100644
+--- a/wrapper/target.cpp
++++ b/wrapper/target.cpp
+@@ -232,8 +232,8 @@ bool Target::libCXXIsDefaultCXXLib() const {
+   if (!OSNum.Num())
+     OSNum = getSDKOSNum();
+ 
+-  return stdlib != libstdcxx && hasLibCXX() && !isGCC() &&
+-         OSNum >= OSVersion(10, 9);
++  return (stdlib != libstdcxx && hasLibCXX() && !isGCC() &&
++         OSNum >= OSVersion(10, 9)) || getSDKOSNum() >= OSVersion(10, 14);
+ }
+ 
+ bool Target::isCXX() {
+diff --git a/build_compiler_rt.sh b/build_compiler_rt.sh
+index 1147ddd..8065b0d 100755
+--- a/build_compiler_rt.sh
++++ b/build_compiler_rt.sh
+@@ -53,8 +53,10 @@ case $CLANG_VERSION in
+   3.9*) BRANCH=release_39; USE_CMAKE=1; ;;
+   4.0*) BRANCH=release_40; USE_CMAKE=1; ;;
+   5.0*) BRANCH=release_50; USE_CMAKE=1; ;;
+-  6.0*) BRANCH=master; USE_CMAKE=1; ;;
+-  * ) echo "Unsupported Clang version, must be >= 3.2 and <= 6.0" 1>&2; exit 1;
++  6.0*) BRANCH=release_60; USE_CMAKE=1; ;;
++  7.0*) BRANCH=release_70; USE_CMAKE=1; ;;
++  8.0*) BRANCH=master; USE_CMAKE=1; ;;
++  * ) echo "Unsupported Clang version, must be >= 3.2 and <= 8.0" 1>&2; exit 1;
+ esac
+ 
+ if [ $(osxcross-cmp $CLANG_VERSION ">=" 3.5) -eq 1 ]; then
