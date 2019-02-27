@@ -1,0 +1,27 @@
+jobs:
+- job: LinuxContainerBuilds
+  pool:
+    vmImage: 'ubuntu-16.04'
+
+  steps:
+  - task: Docker@1
+    displayName: Build image
+    timeoutInMinutes: 120
+    inputs:
+      command: build
+      buildContext: osxcross-builder/
+      useDefaultContext: false
+      dockerFile: osxcross-builder/Dockerfile
+      imageName: liushuyu/osxcross
+      arguments: --build-arg XCODE_USERNAME=$(x_user) --build-arg XCODE_PASSWORD=$(x_pwd)
+  - task: Docker@1
+    displayName: Container registry login
+    inputs:
+      command: login
+      containerregistrytype: Container Registry
+      dockerRegistryEndpoint: docker
+  - task: Docker@1
+    displayName: Push image
+    inputs:
+      command: push
+      imageName: liushuyu/osxcross
