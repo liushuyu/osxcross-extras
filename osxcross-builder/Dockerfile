@@ -18,3 +18,4 @@ RUN apt-get update
 RUN apt-get full-upgrade -y
 RUN apt-get install -y build-essential clang cmake wget git p7zip-full ccache ninja-build
 COPY --from=0 /opt/osxcross /opt/osxcross
+ENV PATH="${PATH}:/opt/osxcross/bin/"

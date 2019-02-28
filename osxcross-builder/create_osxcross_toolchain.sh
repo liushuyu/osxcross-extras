@@ -81,6 +81,12 @@ make -j$(nproc) >> "${STDOUT}"
 make install >> "${STDOUT}"
 popd
 
+echo 'Copying macports scripts...'
+rm -f ${OC_SYSROOT}/bin/{osxcross-mp,osxcross-macports,omp}
+cp -v 'tools/osxcross-macports' ${OC_SYSROOT}/bin/
+ln -sv ${OC_SYSROOT}/bin/osxcross-macports ${OC_SYSROOT}/bin/omp
+ln -sv ${OC_SYSROOT}/bin/osxcross-macports ${OC_SYSROOT}/bin/osxcross-mp
+
 echo 'Building LLVM dsymutil...'
 ./build_llvm_dsymutil.sh >> "${STDOUT}"
 
