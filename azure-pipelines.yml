@@ -15,6 +15,15 @@ jobs:
       imageName: liushuyu/osxcross
       arguments: --build-arg XCODE_USERNAME=$(x_user) --build-arg XCODE_PASSWORD=$(x_pwd)
   - task: Docker@1
+    displayName: Build Qt 5 enabled image
+    timeoutInMinutes: 30
+    inputs:
+      command: build
+      buildContext: osxcross-builder/extra-qt5
+      useDefaultContext: false
+      dockerFile: osxcross-builder/extra-qt5/Dockerfile
+      imageName: liushuyu/osxcross:qt5
+  - task: Docker@1
     displayName: Container registry login
     inputs:
       command: login
@@ -25,3 +34,8 @@ jobs:
     inputs:
       command: push
       imageName: liushuyu/osxcross
+  - task: Docker@1
+    displayName: Push image
+    inputs:
+      command: push
+      imageName: liushuyu/osxcross:qt5
