@@ -46,8 +46,11 @@ fi
 
 git clone --depth=50 https://github.com/tpoechtrager/osxcross/
 cd osxcross
-patch -Np1 -i ../0001-sdk-10-14-support.patch
-patch -Np1 -i ../0002-make-prefix-changeable.patch
+
+for i in ../*.patch; do
+    echo "Applying $(basename "${i}")..."
+    patch -Np1 -i "${i}"
+done
 
 mv ../MacOSX10.*.sdk.tar.* ./tarballs/
 
