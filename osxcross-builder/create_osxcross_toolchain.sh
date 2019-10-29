@@ -37,7 +37,7 @@ echo "Downloading Xcode image file..."
 bash download_xcode$XCODE_VER.sh >> "${STDOUT}" 2>&1
 
 echo 'Making SDK tarball...'
-reconstruct_xcode_img "$(readlink -f Command_Line_Tools_macOS_10.13_for_Xcode_${XCODE_VER}.dmg)"
+reconstruct_xcode_img "$(readlink -f Command_Line_Tools_macOS_10.14_for_Xcode_${XCODE_VER}.dmg)"
 
 echo 'Cloning osxcross repository...'
 if [[ -d osxcross ]]; then
@@ -58,37 +58,16 @@ if [[ "x${OC_SYSROOT}" == 'x' ]]; then
   OC_SYSROOT="$(readlink -f ./target)"
 fi
 
-set +e
+echo "Toolchain will be installed to ${OC_SYSROOT}"
+
+export TARGET_DIR="${OC_SYSROOT}"
 export OSXCROSS_OSX_VERSION_MIN="${OSX_VERSION_MIN}"
 echo 'Build initial toolchain (will fail)'
 if UNATTENDED=1 ./build.sh >> "${STDOUT}"; then
   echo "That's strange... This should fail though..."
 fi
-set -e
 
-echo "Toolchain will be installed to ${OC_SYSROOT}"
-
-echo 'Building TAPI library...'
-git clone https://github.com/tpoechtrager/apple-libtapi.git
-cd apple-libtapi
-git checkout -f 2.0.0
-INSTALLPREFIX="${OC_SYSROOT}" ./build.sh >> "${STDOUT}"
-INSTALLPREFIX="${OC_SYSROOT}" ./install.sh >> "${STDOUT}"
-cd ..
-
-echo 'Building newer version of cctools...'
-git clone https://github.com/tpoechtrager/cctools-port.git
-pushd cctools-port/cctools/
-./configure --prefix="${OC_SYSROOT}" --target="x86_64-apple-${TARGET}" --with-libtapi="${OC_SYSROOT}" >> "${STDOUT}"
-make -j$(nproc) >> "${STDOUT}"
-make install >> "${STDOUT}"
-popd
-
-echo 'Copying macports scripts...'
-rm -f ${OC_SYSROOT}/bin/{osxcross-mp,osxcross-macports,omp}
-cp -v 'tools/osxcross-macports' ${OC_SYSROOT}/bin/
-ln -sv ${OC_SYSROOT}/bin/osxcross-macports ${OC_SYSROOT}/bin/omp
-ln -sv ${OC_SYSROOT}/bin/osxcross-macports ${OC_SYSROOT}/bin/osxcross-mp
+echo "Building extra tools..."
 
 echo 'Building LLVM dsymutil...'
 ./build_llvm_dsymutil.sh >> "${STDOUT}"

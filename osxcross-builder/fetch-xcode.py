@@ -10,7 +10,7 @@ from html5lib.treebuilders import getTreeBuilder
 USER = ''
 PASS = ''
 XCODE_VER = '9.2'
-MAC_VER = '10.13'
+MAC_VER = '10.14'
 BLOB_URL = ''
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.62 Safari/537.36'
 

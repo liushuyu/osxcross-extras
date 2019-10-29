@@ -15,3 +15,10 @@
 5. [Optional] If you want to install toolchain to somewhere else, set `OC_SYSROOT` environment variable to your desired location
 6. Wait for ~1 hour and your tool chain will be built.
 7. Run the commands that you are told to run to install runtime libraries.
+
+#### Influencial Environment Variables
+
+- `XCODE_VER`: the Xcode version you want to use
+- `XCODE_NORT`: do not build the compiler runtime
+- `OC_SYSROOT`: the path to your preferred installation location
+- `SLIENT_RUNNING`: do not print the compilation output to stdout

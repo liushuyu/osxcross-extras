@@ -42,7 +42,7 @@ find . -name "Command Line Tools*.pkg" -type f -exec cp {} ./target.pkg \;
 rm -f ./target.pkg
 CPIO_FILE="$(mktemp --suffix '.cpio' -p "$PWD")"
 echo "$CPIO_FILE"
-for pkg in ${USEFUL_SUBPKG[@]}
+for pkg in "${USEFUL_SUBPKG[@]}"
 do
 	# remove end marker from previous cpio archive chunk
 	# usually the end marker is the whole last line (ASCII cpio)
@@ -110,7 +110,7 @@ do
 	pushd "$TMPDIR/"
 	if which pixz > /dev/null 2>&1; then
 		tar -Ipixz -cf "$2/$i.tar.xz" "$i/"
-	else
+	elif which xz > /dev/null 2>&1; then
 		tar cJf "$2/$i.tar.xz" "$i/"
 	fi
 	popd
