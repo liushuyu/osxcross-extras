@@ -1,6 +1,6 @@
 #!/bin/bash
 apt-get update
-apt-get install -y build-essential clang wget python2.7 python3 python3-pip python3-distutils libxml2-dev cmake git p7zip-full bsdtar curl cpio xz-utils patch pixz llvm xml2-config
+apt-get install -y build-essential clang wget python2.7 python3 python3-pip python3-distutils libxml2-dev cmake git p7zip-full bsdtar curl cpio xz-utils patch pixz llvm libxml2-dev libssl-dev
 
 cd -- "$(dirname $0)"
 source ci.sh
