@@ -1,12 +1,12 @@
 #!/usr/bin/bash -e
 
-SDL2_REPACK='https://liushuyu.b-cdn.net/SDL2-2.0.9.macos.tar.xz'
+SDL2_REPACK='https://liushuyu.b-cdn.net/SDL2-2.0.10.macos.tar.xz'
 QT_SDK_REPO='https://download.qt.io/online/qtsdkrepository/mac_x64/desktop'
 
 # navigate to the URL above to find out the following parameters
-QT_RELEASE='5.13.0'
+QT_RELEASE='5.13.2'
 QT_RL='0' # usually zero
-QT_BUILD='201903150608'
+QT_BUILD='201910220743'
 QT_COMPONENTS=('qtbase' 'qtimageformats' 'qtmacextras' 'qtmultimedia' 'qttools')
 
 mkdir -p osxcross
@@ -19,7 +19,7 @@ echo 'Downloading SDL2 binary...'
 wget -q "${SDL2_REPACK}"
 
 # ffmpeg
-FFMPEG_VER='4.1.1'
+FFMPEG_VER='4.2.1'
 for i in 'shared' 'dev'; do
   echo "Downloading and extracting ffmpeg (${i})..."
   wget -q -c "https://ffmpeg.zeranoe.com/builds/macos64/${i}/ffmpeg-${FFMPEG_VER}-macos64-${i}.zip"
