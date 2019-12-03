@@ -6,7 +6,7 @@ QT_SDK_REPO='https://download.qt.io/online/qtsdkrepository/mac_x64/desktop'
 # navigate to the URL above to find out the following parameters
 QT_RELEASE='5.13.2'
 QT_RL='0' # usually zero
-QT_BUILD='201910220743'
+QT_BUILD='201910281258'
 QT_COMPONENTS=('qtbase' 'qtimageformats' 'qtmacextras' 'qtmultimedia' 'qttools')
 
 mkdir -p osxcross
