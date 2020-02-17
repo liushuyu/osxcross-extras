@@ -84,7 +84,10 @@ if __name__ == '__main__':
     USER = os.environ.get('XCODE_USERNAME')
     PASS = os.environ.get('XCODE_PASSWORD')
     XCODE_VER = os.environ.get('XCODE_VER') or '9.2'
-    BLOB_URL = 'https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_macOS_%s_for_Xcode_%s/Command_Line_Tools_macOS_%s_for_Xcode_%s.dmg' % (MAC_VER, XCODE_VER, MAC_VER, XCODE_VER)
+    if int(XCODE_VER.split('.', 1)[0]) > 10:
+        BLOB_URL = 'https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_for_Xcode_%s/Command_Line_Tools_for_Xcode_%s.dmg' % (XCODE_VER, XCODE_VER)
+    else:
+        BLOB_URL = 'https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_macOS_%s_for_Xcode_%s/Command_Line_Tools_macOS_%s_for_Xcode_%s.dmg' % (MAC_VER, XCODE_VER, MAC_VER, XCODE_VER)
     if (not USER) or (not PASS):
         print('\tPlease specify Apple ID and password using \n\
         XCODE_USERNAME and XCODE_PASSWORD environment varables. \n\

@@ -4,7 +4,8 @@ if [[ "x${TARGET_MAC_VER}" == 'x' ]]; then
 	export TARGET_MAC_VER='10.13'
 fi
 
-USEFUL_SUBPKG=('CLTools_Executables.pkg' "CLTools_SDK_macOS${TARGET_MAC_VER/./}.pkg")
+USEFUL_SUBPKG_10=('CLTools_Executables.pkg' "CLTools_SDK_macOS${TARGET_MAC_VER/./}.pkg")
+USEFUL_SUBPKG_11=("CLTools_macOS${TARGET_MAC_VER/./}_SDK.pkg" 'CLTools_Executables.pkg')
 
 function make_sdk_tbl() {
 local THISDIR="$(dirname $0)"
@@ -42,7 +43,11 @@ find . -name "Command Line Tools*.pkg" -type f -exec cp {} ./target.pkg \;
 rm -f ./target.pkg
 CPIO_FILE="$(mktemp --suffix '.cpio' -p "$PWD")"
 echo "$CPIO_FILE"
-for pkg in "${USEFUL_SUBPKG[@]}"
+
+USEFUL_SUBPKG="${USEFUL_SUBPKG_10[@]}"
+[ -d CLTools_macOS${TARGET_MAC_VER/./}_SDK.pkg ] && USEFUL_SUBPKG="${USEFUL_SUBPKG_11[@]}"
+
+for pkg in ${USEFUL_SUBPKG}
 do
 	# remove end marker from previous cpio archive chunk
 	# usually the end marker is the whole last line (ASCII cpio)

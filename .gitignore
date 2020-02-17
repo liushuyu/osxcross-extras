@@ -2,6 +2,9 @@
 *.pkg
 *.tar*
 Payload
+*.dmg
+/tmp.*
+.DS_Store
 
 # C++ objects and libs
 *.slo

@@ -24,7 +24,6 @@
 #
 
 
-
 import struct
 import os
 import sys
@@ -79,7 +78,8 @@ def parse_pbzx(pbzx_file, cpio_file, size=None):
     while (flags & (1 << 24)):
         # update progress
         if size:
-            sys.stderr.write('\r %s%% complete...' % (pbzx_file.tell() * 100 // size))
+            sys.stderr.write('\r %s%% complete...' %
+                             (pbzx_file.tell() * 100 // size))
             sys.stderr.flush()
         # Read in more flags
         flags = read_f(pbzx_file, 8)
