@@ -46,7 +46,7 @@ target_link_libraries(macdeployqt Qt5::Core)
 
 add_executable(macchangeqt
   $<TARGET_OBJECTS:shared>
-  macdeployqt/main.cpp
+  macchangeqt/main.cpp
 )
 
 target_link_libraries(macchangeqt Qt5::Core)

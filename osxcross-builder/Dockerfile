@@ -1,5 +1,6 @@
 # base image, not the final image
 FROM ubuntu:20.04
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get full-upgrade -y
 RUN apt-get install -y build-essential clang wget python2.7 python3 \
@@ -15,6 +16,7 @@ RUN /tmp/ci.sh
 
 # second stage
 FROM ubuntu:20.04
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get full-upgrade -y
 RUN apt-get install -y build-essential clang cmake wget git p7zip-full ccache ninja-build
