@@ -1,4 +1,4 @@
-From 295068a23b4af76f2a3268c10b420c78f9a5e1a5 Mon Sep 17 00:00:00 2001
+From 80d2e9f5741791d2f1cf93ef50d2fd8859587769 Mon Sep 17 00:00:00 2001
 From: liushuyu <liushuyu011@gmail.com>
 Date: Thu, 6 Dec 2018 17:30:55 -0700
 Subject: [PATCH] osxcross
@@ -6,11 +6,12 @@ Subject: [PATCH] osxcross
 ---
  CMakeLists.txt       | 34 ++++++++++++++++++++++++++++++++++
  src/Constants.h      | 20 ++++++++++++++++++++
- src/Dependency.cpp   | 40 ++++++++++++++++++++--------------------
- src/Dependency.h     | 10 ++++++----
- src/DylibBundler.cpp | 44 ++++++++++++++++++++++----------------------
+ src/Dependency.cpp   | 16 ++++++++--------
+ src/Dependency.h     |  8 +++++---
+ src/DylibBundler.cpp | 38 +++++++++++++++++++-------------------
  src/DylibBundler.h   |  2 ++
- 6 files changed, 104 insertions(+), 46 deletions(-)
+ src/Utils.cpp        |  2 +-
+ 7 files changed, 89 insertions(+), 31 deletions(-)
  create mode 100644 CMakeLists.txt
  create mode 100644 src/Constants.h
 
@@ -81,7 +82,7 @@ index 0000000..f5c2d0d
 +
 +#endif
 diff --git a/src/Dependency.cpp b/src/Dependency.cpp
-index 9e3c856..308dcad 100644
+index 66249bd..e2fe667 100644
 --- a/src/Dependency.cpp
 +++ b/src/Dependency.cpp
 @@ -118,14 +118,14 @@ Dependency::Dependency(std::string path)
@@ -138,76 +139,13 @@ index 9e3c856..308dcad 100644
 -    
 +
      // Fix the lib's inner name
--    std::string command = std::string("install_name_tool -id ") + getInnerPath() + " " + getInstallPath();
-+    std::string command = install_name_tool + std::string(" -id ") + getInnerPath() + " " + getInstallPath();
+-    std::string command = std::string("install_name_tool -id \"") + getInnerPath() + "\" \"" + getInstallPath() + "\"";
++    std::string command = install_name_tool + std::string(" -id \"") + getInnerPath() + "\" \"" + getInstallPath() + "\"";
      if( systemp( command ) != 0 )
      {
          std::cerr << "\n\nError : An error occured while trying to change identity of library " << getInstallPath() << std::endl;
-@@ -210,50 +210,50 @@ void Dependency::copyYourself()
- void Dependency::fixFileThatDependsOnMe(std::string file_to_fix)
- {
-     // for main lib file
--    std::string command = std::string("install_name_tool -change ") +
-+    std::string command = install_name_tool + std::string(" -change ") +
-     getOriginalPath() + " " + getInnerPath() + " " + file_to_fix;
--    
-+
-     if( systemp( command ) != 0 )
-     {
-         std::cerr << "\n\nError : An error occured while trying to fix depencies of " << file_to_fix << std::endl;
-         exit(1);
-     }
--    
-+
-     // for symlinks
-     const int symamount = symlinks.size();
-     for(int n=0; n<symamount; n++)
-     {
--        command = std::string("install_name_tool -change ") +
-+        command = install_name_tool + std::string(" -change ") +
-         symlinks[n] + " " + getInnerPath() + " " + file_to_fix;
--        
-+
-         if( systemp( command ) != 0 )
-         {
-             std::cerr << "\n\nError : An error occured while trying to fix depencies of " << file_to_fix << std::endl;
-             exit(1);
-         }
-     }
--    
--    
-+
-+
-     // FIXME - hackish
-     if(missing_prefixes)
-     {
-         // for main lib file
--        command = std::string("install_name_tool -change ") +
-+        command = install_name_tool + std::string(" -change ") +
-         filename + " " + getInnerPath() + " " + file_to_fix;
--        
-+
-         if( systemp( command ) != 0 )
-         {
-             std::cerr << "\n\nError : An error occured while trying to fix depencies of " << file_to_fix << std::endl;
-             exit(1);
-         }
--        
-+
-         // for symlinks
-         const int symamount = symlinks.size();
-         for(int n=0; n<symamount; n++)
-         {
--            command = std::string("install_name_tool -change ") +
-+            command = install_name_tool + std::string(" -change ") +
-             symlinks[n] + " " + getInnerPath() + " " + file_to_fix;
--            
-+
-             if( systemp( command ) != 0 )
-             {
-                 std::cerr << "\n\nError : An error occured while trying to fix depencies of " << file_to_fix << std::endl;
 diff --git a/src/Dependency.h b/src/Dependency.h
-index ca4f153..2c8b209 100644
+index c3c4e0c..d4bceb2 100644
 --- a/src/Dependency.h
 +++ b/src/Dependency.h
 @@ -29,13 +29,15 @@ THE SOFTWARE.
@@ -236,15 +174,7 @@ index ca4f153..2c8b209 100644
      void addSymlink(std::string s);
      int getSymlinkAmount() const{ return symlinks.size(); }
  
-@@ -56,11 +58,11 @@ public:
- 
-     void copyYourself();
-     void fixFileThatDependsOnMe(std::string file);
--    
-+
-     // comapres the given Dependency with this one. If both refer to the same file,
-     // it returns true and merges both entries into one.
-     bool mergeIfSameAs(Dependency& dep2);
+@@ -63,4 +65,4 @@ public:
  };
  
  
@@ -252,19 +182,10 @@ index ca4f153..2c8b209 100644
 \ No newline at end of file
 +#endif
 diff --git a/src/DylibBundler.cpp b/src/DylibBundler.cpp
-index 3a4ffd3..83d4646 100644
+index bb811dc..e65e905 100644
 --- a/src/DylibBundler.cpp
 +++ b/src/DylibBundler.cpp
-@@ -43,7 +43,7 @@ std::map<std::string, std::vector<std::string> > rpaths_per_file;
- void changeLibPathsOnFile(std::string file_to_fix)
- {
-     std::cout << "\n* Fixing dependencies on " << file_to_fix.c_str() << std::endl;
--    
-+
-     const int dep_amount = deps.size();
-     for(int n=0; n<dep_amount; n++)
-     {
-@@ -64,7 +64,7 @@ void collectRpaths(const std::string& filename)
+@@ -71,7 +71,7 @@ void collectRpaths(const std::string& filename)
          return;
      }
  
@@ -273,54 +194,45 @@ index 3a4ffd3..83d4646 100644
      std::string output = system_get_output(cmd);
  
      std::vector<std::string> lc_lines;
-@@ -149,7 +149,7 @@ void fixRpathsOnFile(const std::string& original_file, const std::string& file_t
+@@ -156,7 +156,7 @@ void fixRpathsOnFile(const std::string& original_file, const std::string& file_t
  
      for (size_t i=0; i < rpaths_to_fix.size(); ++i)
      {
--        std::string command = std::string("install_name_tool -rpath ") +
-+        std::string command = install_name_tool + std::string(" -rpath ") +
-                 rpaths_to_fix[i] + " " + Settings::inside_lib_path() + " " + file_to_fix;
+-        std::string command = std::string("install_name_tool -rpath \"") +
++        std::string command = install_name_tool + std::string(" -rpath \"") +
+                 rpaths_to_fix[i] + "\" \"" + Settings::inside_lib_path() + "\" \"" + file_to_fix + "\"";
          if ( systemp(command) != 0)
          {
-@@ -162,16 +162,16 @@ void fixRpathsOnFile(const std::string& original_file, const std::string& file_t
- void addDependency(std::string path)
+@@ -169,7 +169,7 @@ void fixRpathsOnFile(const std::string& original_file, const std::string& file_t
+ void addDependency(std::string path, std::string filename)
  {
      Dependency dep(path);
 -    
 +
      // we need to check if this library was already added to avoid duplicates
+     bool in_deps = false;
      const int dep_amount = deps.size();
-     for(int n=0; n<dep_amount; n++)
-     {
-         if(dep.mergeIfSameAs(deps[n])) return;
-     }
--    
-+
-     if(!Settings::isPrefixBundled(dep.getPrefix())) return;
--    
-+
-     deps.push_back(dep);
- }
- 
-@@ -181,7 +181,7 @@ void addDependency(std::string path)
+@@ -198,8 +198,8 @@ void addDependency(std::string path, std::string filename)
+  */
  void collectDependencies(std::string filename, std::vector<std::string>& lines)
  {
-     // execute "otool -L" on the given file and collect the command's output
--    std::string cmd = "otool -L " + filename;
-+    std::string cmd = otool + " -L " + filename;
+-    // execute "otool -l" on the given file and collect the command's output
+-    std::string cmd = "otool -l \"" + filename + "\"";
++    // execute "otool -L" on the given file and collect the command's output
++    std::string cmd = otool + " -l \"" + filename + "\"";
      std::string output = system_get_output(cmd);
  
      if(output.find("can't open file")!=std::string::npos or output.find("No such file")!=std::string::npos or output.size()<1)
-@@ -189,7 +189,7 @@ void collectDependencies(std::string filename, std::vector<std::string>& lines)
+@@ -207,7 +207,7 @@ void collectDependencies(std::string filename, std::vector<std::string>& lines)
          std::cerr << "Cannot find file " << filename << " to read its dependencies" << std::endl;
          exit(1);
      }
 -    
 +
      // split output
-     tokenize(output, "\n", &lines);
- }
-@@ -199,9 +199,9 @@ void collectDependencies(std::string filename)
+     std::vector<std::string> raw_lines;
+     tokenize(output, "\n", &raw_lines);
+@@ -240,9 +240,9 @@ void collectDependencies(std::string filename)
  {
      std::vector<std::string> lines;
      collectDependencies(filename, lines);
@@ -332,7 +244,7 @@ index 3a4ffd3..83d4646 100644
      const int line_amount = lines.size();
      for(int n=0; n<line_amount; n++)
      {
-@@ -223,7 +223,7 @@ void collectSubDependencies()
+@@ -265,7 +265,7 @@ void collectSubDependencies()
  {
      // print status to user
      int dep_amount = deps.size();
@@ -341,7 +253,7 @@ index 3a4ffd3..83d4646 100644
      // recursively collect each dependencie's dependencies
      while(true)
      {
-@@ -239,13 +239,13 @@ void collectSubDependencies()
+@@ -281,7 +281,7 @@ void collectSubDependencies()
              }
              collectRpathsForFilename(original_path);
              collectDependencies(original_path, lines);
@@ -350,15 +262,8 @@ index 3a4ffd3..83d4646 100644
              const int line_amount = lines.size();
              for(int n=0; n<line_amount; n++)
              {
-                 if(lines[n][0] != '\t') continue; // only lines beginning with a tab interest us
-                 if( lines[n].find(".framework") != std::string::npos ) continue; //Ignore frameworks, we can not handle them
--                
-+
-                 // trim useless info, keep only library name
-                 std::string dep_path = lines[n].substr(1, lines[n].rfind(" (") - 1);
-                 if (isRpath(dep_path))
-@@ -256,7 +256,7 @@ void collectSubDependencies()
-                 addDependency(dep_path);
+@@ -298,7 +298,7 @@ void collectSubDependencies()
+                 addDependency(dep_path, original_path);
              }//next
          }//next
 -        
@@ -366,7 +271,7 @@ index 3a4ffd3..83d4646 100644
          if(deps.size() == dep_amount) break; // no more dependencies were added on this iteration, stop searching
      }
  }
-@@ -265,10 +265,10 @@ void createDestDir()
+@@ -307,10 +307,10 @@ void createDestDir()
  {
      std::string dest_folder = Settings::destFolder();
      std::cout << "* Checking output directory " << dest_folder.c_str() << std::endl;
@@ -379,7 +284,7 @@ index 3a4ffd3..83d4646 100644
      if(dest_exists and Settings::canOverwriteDir())
      {
          std::cout << "* Erasing old output directory " << dest_folder.c_str() << std::endl;
-@@ -280,10 +280,10 @@ void createDestDir()
+@@ -322,10 +322,10 @@ void createDestDir()
          }
          dest_exists = false;
      }
@@ -392,7 +297,7 @@ index 3a4ffd3..83d4646 100644
          if(Settings::canCreateDir())
          {
              std::cout << "* Creating output directory " << dest_folder.c_str() << std::endl;
-@@ -300,7 +300,7 @@ void createDestDir()
+@@ -342,7 +342,7 @@ void createDestDir()
              exit(1);
          }
      }
@@ -401,7 +306,7 @@ index 3a4ffd3..83d4646 100644
  }
  
  void doneWithDeps_go()
-@@ -313,12 +313,12 @@ void doneWithDeps_go()
+@@ -355,12 +355,12 @@ void doneWithDeps_go()
          deps[n].print();
      }
      std::cout << std::endl;
@@ -416,7 +321,7 @@ index 3a4ffd3..83d4646 100644
          for(int n=0; n<dep_amount; n++)
          {
              deps[n].copyYourself();
-@@ -326,7 +326,7 @@ void doneWithDeps_go()
+@@ -368,7 +368,7 @@ void doneWithDeps_go()
              fixRpathsOnFile(deps[n].getOriginalPath(), deps[n].getInstallPath());
          }
      }
@@ -438,6 +343,19 @@ index edf557b..d779f90 100644
  void collectDependencies(std::string filename);
  void collectSubDependencies();
  void doneWithDeps_go();
+diff --git a/src/Utils.cpp b/src/Utils.cpp
+index 8651c5f..5892e67 100644
+--- a/src/Utils.cpp
++++ b/src/Utils.cpp
+@@ -169,7 +169,7 @@ int systemp(std::string& cmd)
+ 
+ void changeInstallName(const std::string& binary_file, const std::string& old_name, const std::string& new_name)
+ {
+-    std::string command = std::string("install_name_tool -change \"") + old_name + "\" \"" + new_name + "\" \"" + binary_file + "\"";
++    std::string command = install_name_tool + std::string(" -change \"") + old_name + "\" \"" + new_name + "\" \"" + binary_file + "\"";
+     if( systemp( command ) != 0 )
+     {
+         std::cerr << "\n\nError: An error occured while trying to fix dependencies of " << binary_file << std::endl;
 -- 
-2.19.2
+2.27.0
 
