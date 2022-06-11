@@ -1,12 +1,12 @@
 #!/usr/bin/bash -e
 
-SDL2_REPACK='https://liushuyu.b-cdn.net/SDL2-2.0.12.macos.tar.xz'
+SDL2_REPACK='https://liushuyu.b-cdn.net/SDL2-2.0.22.macos.tar.xz'
 QT_SDK_REPO='https://download.qt.io/online/qtsdkrepository/mac_x64/desktop'
 
 # navigate to the URL above to find out the following parameters
-QT_RELEASE='5.15.0'
+QT_RELEASE='5.15.2'
 QT_RL='0' # usually zero
-QT_BUILD='202005140805'
+QT_BUILD='202011130601'
 QT_COMPONENTS=('qtbase' 'qtimageformats' 'qtmacextras' 'qtmultimedia' 'qttools')
 
 mkdir -p osxcross
@@ -17,14 +17,6 @@ export PATH="/opt/osxcross/bin/:$PATH"
 # sdl2 and osxcross
 echo 'Downloading SDL2 binary...'
 wget -q "${SDL2_REPACK}"
-
-# ffmpeg
-FFMPEG_VER='4.2.3'
-for i in 'shared' 'dev'; do
-  echo "Downloading and extracting ffmpeg (${i})..."
-  wget -q -c "https://ffmpeg.zeranoe.com/builds/macos64/${i}/ffmpeg-${FFMPEG_VER}-macos64-${i}.zip"
-  7z x "ffmpeg-${FFMPEG_VER}-macos64-${i}.zip" > /dev/null
-done
 
 # Qt
 QT_VERSION="${QT_RELEASE//./}"
@@ -47,16 +39,6 @@ SDL2_REPACK="$(basename ${SDL2_REPACK})"
 
 echo 'Extracting SDL2 binary...'
 tar xf "${SDL2_REPACK}"
-
-echo "Copying ffmpeg ${FFMPEG_VER} files to sysroot..."
-
-cp -v "ffmpeg-${FFMPEG_VER}-macos64-shared"/bin/*.dylib /opt/osxcross/macports/pkgs/opt/local/lib/
-cp -vr "ffmpeg-${FFMPEG_VER}-macos64-dev"/include /opt/osxcross/macports/pkgs/opt/local/
-FFMPEG_LIBS=$(find "/opt/osxcross/macports/pkgs/opt/local/lib/" -name 'libav*.dylib')
-# cmake won't find the ffmpeg libs if the files contain version numbers
-for i in ${FFMPEG_LIBS}; do
-    ln -sv "${i}" "${i%.*.*}.dylib"
-done
 
 echo 'Copying SDL2 binaries...'
 cp -rv 'SDL2/SDL2.framework' '/opt/osxcross/macports/pkgs/opt/local/lib/'
