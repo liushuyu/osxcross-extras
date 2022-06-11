@@ -1,5 +1,5 @@
 diff --git a/tools/osxcross_conf.sh b/tools/osxcross_conf.sh
-index a0c9571..6cfa79f 100755
+index cf963a2..3392a7f 100755
 --- a/tools/osxcross_conf.sh
 +++ b/tools/osxcross_conf.sh
 @@ -2,7 +2,12 @@
@@ -13,6 +13,6 @@ index a0c9571..6cfa79f 100755
 +  OSXCROSS_CONF="${OC_SYSROOT}/bin/osxcross-conf"
 +fi
 +
- [ -f $OSXCROSS_CONF ] || { OSXCROSS_CONF=$(which osxcross-conf 2>/dev/null) || exit 1; }
+ [ -f $OSXCROSS_CONF ] || { OSXCROSS_CONF=$(command -v osxcross-conf 2>/dev/null) || exit 1; }
  
  $OSXCROSS_CONF || exit 1
