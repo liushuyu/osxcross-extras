@@ -5,6 +5,7 @@ Payload
 *.dmg
 /tmp.*
 .DS_Store
+.cred
 
 # C++ objects and libs
 *.slo

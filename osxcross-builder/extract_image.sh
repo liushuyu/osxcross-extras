@@ -6,6 +6,7 @@ fi
 
 USEFUL_SUBPKG_10=('CLTools_Executables.pkg' "CLTools_SDK_macOS${TARGET_MAC_VER/./}.pkg")
 USEFUL_SUBPKG_11=("CLTools_macOS${TARGET_MAC_VER/./}_SDK.pkg" 'CLTools_Executables.pkg')
+USEFUL_SUBPKG_20=('CLTools_Executables.pkg' 'CLTools_macOS_SDK.pkg' 'CLTools_macOSLMOS_SDK.pkg' 'CLTools_macOSNMOS_SDK.pkg')
 
 function make_sdk_tbl() {
 local THISDIR="$(dirname $0)"
@@ -46,6 +47,7 @@ echo "$CPIO_FILE"
 
 USEFUL_SUBPKG="${USEFUL_SUBPKG_10[@]}"
 [ -d CLTools_macOS${TARGET_MAC_VER/./}_SDK.pkg ] && USEFUL_SUBPKG="${USEFUL_SUBPKG_11[@]}"
+[ -d CLTools_macOS_SDK.pkg ] && USEFUL_SUBPKG="${USEFUL_SUBPKG_20[@]}"
 
 for pkg in ${USEFUL_SUBPKG}
 do
@@ -95,7 +97,7 @@ else
 fi
 
 pushd "${SDK_LOCATION}"
-SDKS=$(ls | grep "^MacOSX10.*" | grep -v "Patch")
+SDKS=$(ls | grep "^MacOSX1[0123].*" | grep -v "Patch")
 popd
 
 for i in $SDKS

@@ -10,7 +10,7 @@ fi
 echo "Use this account for downloading: ${XCODE_USERNAME}"
 chmod a+x create_osxcross_toolchain.sh
 export OC_SYSROOT='/opt/osxcross'
-export XCODE_VER='11.5'
+export XCODE_VER='12.5.1'
 export SLIENT_RUNNING='1'
 export TARGET_MAC_VER='10.14'
 ./create_osxcross_toolchain.sh
@@ -21,10 +21,9 @@ printf '\n\n\n\n\n\nTesting the toolchain...'
 export PATH=$PATH:"${OC_SYSROOT}/bin/"
 pushd osxcross/oclang/
 AVAIL_ARCH=('x86_64' 'x86_64h')
-for arch in ${AVAIL_ARCH[@]}
+for arch in "${AVAIL_ARCH[@]}"
 do
   OC_CXX="${arch}-apple-darwin18-clang++-libc++"
-  OC_GCXX="${arch}-apple-darwin18-clang++-stdc++"
   OC_CC="${arch}-apple-darwin18-clang"
   echo "Compiling C program for ${arch}..."
   ${OC_CC} -Wall 'test.c' -o 'test'

@@ -13,6 +13,7 @@ case $1 in
   9*) TARGET=darwin17; GSTDCXX=1; ;;
   10*) TARGET=darwin18; GSTDCXX=0; export OSX_VERSION_MIN='10.9' ;;
   11*) TARGET=darwin19; GSTDCXX=0; export OSX_VERSION_MIN='10.9' ;;
+  12*) TARGET=darwin20; GSTDCXX=0; export OSX_VERSION_MIN='10.9' ;;
 *) echo "Unknown target $1" && exit 1; ;;
 esac
 }
@@ -53,7 +54,7 @@ for i in ../*.patch; do
     patch -Np1 -i "${i}"
 done
 
-mv ../MacOSX10.*.sdk.tar.* ./tarballs/
+mv ../MacOSX11.*.sdk.tar.* ./tarballs/
 
 if [[ "x${OC_SYSROOT}" == 'x' ]]; then
   OC_SYSROOT="$(readlink -f ./target)"
