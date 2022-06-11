@@ -1,5 +1,5 @@
 # base image, not the final image
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get full-upgrade -y
@@ -15,7 +15,7 @@ ENV XCODE_USERNAME=$XCODE_USERNAME
 RUN /tmp/ci.sh
 
 # second stage
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get full-upgrade -y
